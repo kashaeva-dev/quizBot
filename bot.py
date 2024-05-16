@@ -60,6 +60,15 @@ def handle_new_question_request(update: Update, context: CallbackContext, db):
     return 'WAITING_ANSWER'
 
 
+def handle_surrender_request(update: Update, context: CallbackContext, db):
+    question = json.loads(db.get(str(update.effective_chat.id)))
+    context.bot.send_message(chat_id=update.effective_chat.id,
+                             text=f'Ответ на этот вопрос: {question[1]}',
+                             reply_markup=get_main_keyboard(),
+                             )
+    handle_new_question_request(update, context, db)
+
+
 def cancel(update: Update, context: CallbackContext):
     update.message.reply_text(text='Пока!',
                               reply_markup=ReplyKeyboardRemove())
@@ -76,8 +85,10 @@ def start_tg_bot(token, logger, db):
 
         states={
             'WAITING_ANSWER': [
-                MessageHandler(Filters.text & (~Filters.command),
-                               partial(handle_solution_attempt,db=db))
+                MessageHandler(Filters.text & (~Filters.command) & (~Filters.regex(r'^Сдаться$')),
+                               partial(handle_solution_attempt,db=db)),
+                MessageHandler(Filters.text & Filters.regex(r'^Сдаться$'),
+                               partial(handle_surrender_request, db=db)),
             ],
             'REQUEST_QUESTION': [
                 MessageHandler(Filters.text & Filters.regex(r'^Новый вопрос$'),
