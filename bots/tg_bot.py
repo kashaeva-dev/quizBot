@@ -1,16 +1,16 @@
+import json
 import logging
 import random
-import redis
-import json
 import re
-
 from functools import partial
+
+import redis
 from environs import Env
 from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext, ConversationHandler
 
-from keyboards import get_main_keyboard
 from get_quiz_content import load_quiz_content
+from tg_keyboards import get_main_keyboard
 
 
 def start(update: Update, context: CallbackContext, db):
