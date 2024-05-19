@@ -4,7 +4,7 @@ import telegram
 def get_main_keyboard():
     main_keyboard = [
         ['Новый вопрос', 'Сдаться'],
-        ['Мой счет']
+        ['Мой счет'],
     ]
     reply_markup = telegram.ReplyKeyboardMarkup(main_keyboard, resize_keyboard=True)
 

@@ -23,7 +23,7 @@ def create_parser():
                         help='Start only vk bot',
                         )
     parser.add_argument('--file',
-                        default='/Users/nataly/Projects/quizBot/quiz_content.txt',
+                        default='../quizBot/quiz_content.txt',
                         help='Path to json file with intents',
                         )
 

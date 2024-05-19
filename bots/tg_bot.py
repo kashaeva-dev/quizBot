@@ -25,8 +25,6 @@ def start(update: Update, context: CallbackContext, db):
 def handle_solution_attempt(update: Update, context: CallbackContext, db):
     question = json.loads(db.get(str(update.effective_chat.id)))
     answer = re.split(r'[.(]', question[1])[0].lower()
-    logger.info(answer)
-    logger.info(question[1])
 
     if answer == update.message.text.lower():
         text = 'Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»'
@@ -38,7 +36,7 @@ def handle_solution_attempt(update: Update, context: CallbackContext, db):
         return 'REQUEST_QUESTION'
 
     else:
-        text='Неправильно… Попробуешь ещё раз?'
+        text = 'Неправильно… Попробуешь ещё раз?'
         context.bot.send_message(chat_id=update.effective_chat.id,
                                  text=text,
                                  reply_markup=get_main_keyboard(),
@@ -86,7 +84,7 @@ def start_tg_bot(token, logger, db, filepath):
         states={
             'WAITING_ANSWER': [
                 MessageHandler(Filters.text & (~Filters.command) & (~Filters.regex(r'^Сдаться$')),
-                               partial(handle_solution_attempt,db=db)),
+                               partial(handle_solution_attempt, db=db)),
                 MessageHandler(Filters.text & Filters.regex(r'^Сдаться$'),
                                partial(handle_surrender_request, db=db, filepath=filepath)),
             ],

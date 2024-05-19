@@ -1,6 +1,7 @@
 import os
 import re
 import pickle
+import argparse
 
 question_pattern = r"(Вопрос [\d]+:\s)(.*)"
 answer_pattern = r"(Ответ:\s)(.*)"
@@ -41,11 +42,28 @@ def load_quiz_content(filepath):
     return quiz_content
 
 
+def create_parser():
+    parser = argparse.ArgumentParser(
+        prog="Get quiz content",
+    )
+    parser.add_argument('--directory',
+                        default='quiz-questions',
+                        help='Path to directory with files which contain quiz questions',
+                        )
+    parser.add_argument('--target_directory',
+                        default='.',
+                        help='Path to save quiz content',
+                        )
+    return parser
+
+
 if __name__ == "__main__":
-    directory = 'quiz-questions'
-    target_directory = '.'
+    parser = create_parser()
+    args = parser.parse_args()
+
+    directory = args.directory
+    target_directory = args.target_directory
+
     quiz_content = get_quiz_content(directory)
     filepath = os.path.join(target_directory, 'quiz_content.txt')
     save_quiz_content(filepath, quiz_content)
-
-
