@@ -3,17 +3,17 @@ import logging
 import random
 import re
 
-import redis
 import vk_api as vk
 from environs import Env
 from vk_api.longpoll import VkLongPoll, VkEventType
 
 from get_quiz_content import load_quiz_content
+from settings import redis_db
 from vk_keyboards import get_main_keyboard
 
 
-def handle_new_question_request(event, vk_api, db):
-    quiz_content = load_quiz_content()
+def handle_new_question_request(event, vk_api, db, filepath):
+    quiz_content = load_quiz_content(filepath)
     question = random.choice(quiz_content)
     question_json = json.dumps(question)
     db.set(str(event.user_id), question_json)
@@ -24,7 +24,8 @@ def handle_new_question_request(event, vk_api, db):
         keyboard=get_main_keyboard(),
     )
 
-def handle_surrender_request(event, vk_api, db):
+
+def handle_surrender_request(event, vk_api, db, filepath):
     question = json.loads(db.get(str(event.user_id)))
     print(question[1])
     vk_api.messages.send(
@@ -33,7 +34,7 @@ def handle_surrender_request(event, vk_api, db):
         random_id=random.randint(1, 1000),
         keyboard=get_main_keyboard(),
     )
-    handle_new_question_request(event, vk_api, db)
+    handle_new_question_request(event, vk_api, db, filepath=filepath)
 
 
 def handle_answer_checking(event, vk_api, db):
@@ -62,31 +63,25 @@ def handle_answer_checking(event, vk_api, db):
     )
 
 
-def handle_conversation(event, vk_api, db):
+def handle_conversation(event, vk_api, db, filepath):
     if event.text == 'Новый вопрос':
-        handle_new_question_request(event, vk_api, db)
+        handle_new_question_request(event, vk_api, db, filepath=filepath)
     elif event.text == 'Сдаться':
-        handle_surrender_request(event, vk_api, db)
+        handle_surrender_request(event, vk_api, db, filepath=filepath)
     else:
         handle_answer_checking(event, vk_api, db)
 
 
-def start_vk_bot(token, logger, db=0):
+def start_vk_bot(token, logger, db, filepath):
     logger.info('Start vk bot')
 
     vk_session = vk.VkApi(token=token)
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
 
-    r = redis.Redis(host=env.str('REDIS_HOST'),
-                    port=17869,
-                    db=0,
-                    password=env.str('REDIS_PASSWORD'),
-                    )
-
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-            handle_conversation(event, vk_api, db=r)
+            handle_conversation(event, vk_api, db=db, filepath=filepath)
 
 
 if __name__ == "__main__":
@@ -100,4 +95,4 @@ if __name__ == "__main__":
     )
 
     vk_token = env.str('VK_BOT_API')
-    start_vk_bot(vk_token, logger)
+    start_vk_bot(vk_token, logger, redis_db, filepath='/Users/nataly/Projects/quizBot/quiz_content.txt')

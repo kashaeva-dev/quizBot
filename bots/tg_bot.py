@@ -4,12 +4,12 @@ import random
 import re
 from functools import partial
 
-import redis
 from environs import Env
 from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext, ConversationHandler
 
 from get_quiz_content import load_quiz_content
+from settings import redis_db
 from tg_keyboards import get_main_keyboard
 
 
@@ -47,8 +47,8 @@ def handle_solution_attempt(update: Update, context: CallbackContext, db):
         return 'WAITING_ANSWER'
 
 
-def handle_new_question_request(update: Update, context: CallbackContext, db):
-    quiz_content = load_quiz_content()
+def handle_new_question_request(update: Update, context: CallbackContext, db, filepath):
+    quiz_content = load_quiz_content(filepath)
     question = random.choice(quiz_content)
     question_json = json.dumps(question)
     db.set(str(update.effective_chat.id), question_json)
@@ -60,13 +60,13 @@ def handle_new_question_request(update: Update, context: CallbackContext, db):
     return 'WAITING_ANSWER'
 
 
-def handle_surrender_request(update: Update, context: CallbackContext, db):
+def handle_surrender_request(update: Update, context: CallbackContext, db, filepath):
     question = json.loads(db.get(str(update.effective_chat.id)))
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text=f'Ответ на этот вопрос: {question[1]}',
                              reply_markup=get_main_keyboard(),
                              )
-    handle_new_question_request(update, context, db)
+    handle_new_question_request(update, context, db, filepath)
 
 
 def cancel(update: Update, context: CallbackContext):
@@ -76,7 +76,7 @@ def cancel(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
-def start_tg_bot(token, logger, db):
+def start_tg_bot(token, logger, db, filepath):
     updater = Updater(token=token, use_context=True)
     dispatcher = updater.dispatcher
 
@@ -88,11 +88,11 @@ def start_tg_bot(token, logger, db):
                 MessageHandler(Filters.text & (~Filters.command) & (~Filters.regex(r'^Сдаться$')),
                                partial(handle_solution_attempt,db=db)),
                 MessageHandler(Filters.text & Filters.regex(r'^Сдаться$'),
-                               partial(handle_surrender_request, db=db)),
+                               partial(handle_surrender_request, db=db, filepath=filepath)),
             ],
             'REQUEST_QUESTION': [
                 MessageHandler(Filters.text & Filters.regex(r'^Новый вопрос$'),
-                               partial(handle_new_question_request, db=db)),
+                               partial(handle_new_question_request, db=db, filepath=filepath)),
             ],
         },
 
@@ -117,10 +117,4 @@ if __name__ == '__main__':
         level=logging.INFO,
     )
 
-    r = redis.Redis(host=env.str('REDIS_HOST'),
-                    port=17869,
-                    db=0,
-                    password=env.str('REDIS_PASSWORD'),
-                    )
-
-    start_tg_bot(token, logger, db=r)
+    start_tg_bot(token, logger, db=redis_db, filepath='/Users/nataly/Projects/quizBot/quiz_content.txt')

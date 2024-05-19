@@ -34,7 +34,7 @@ def save_quiz_content(filepath, data):
         pickle.dump(data, quiz_content_file)
 
 
-def load_quiz_content(filepath='/Users/nataly/Projects/quizBot/quiz_content.txt'):
+def load_quiz_content(filepath):
     with open(filepath, 'rb') as quiz_file:
         quiz_content = pickle.load(quiz_file)
 
