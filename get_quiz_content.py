@@ -7,7 +7,7 @@ question_pattern = r"(Вопрос [\d]+:\s)(.*)"
 answer_pattern = r"(Ответ:\s)(.*)"
 
 
-def get_quiz_content(directory, filepath):
+def get_quiz_content(directory, target_filepath):
     quiz_content = []
     for filename in os.listdir(directory):
         filepath = os.path.join(directory, filename)
@@ -28,7 +28,7 @@ def get_quiz_content(directory, filepath):
                         answer = answer_match.group(2).replace('\n', ' ')
                     question_answer = (question, answer)
                     quiz_content.append(question_answer)
-        save_quiz_content(filepath, quiz_content)
+        save_quiz_content(target_filepath, quiz_content)
         quiz_content = []
     return quiz_content
 
@@ -67,5 +67,5 @@ if __name__ == "__main__":
     directory = args.directory
     target_directory = args.target_directory
 
-    filepath = os.path.join(target_directory, 'quiz_content.txt')
-    get_quiz_content(directory, filepath)
+    target_filepath = os.path.join(target_directory, 'quiz_content.txt')
+    get_quiz_content(directory, target_filepath)
