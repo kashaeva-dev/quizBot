@@ -11,6 +11,7 @@ def get_quiz_content(directory):
     quiz_content = []
     for filename in os.listdir(directory):
         filepath = os.path.join(directory, filename)
+        print(f'Start file: {filename}')
         with open(filepath, encoding='KOI8-R') as quiz_file:
             quiz_contents = quiz_file.read()
         question_blocks = quiz_contents.split('\n\n\n')
