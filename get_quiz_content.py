@@ -49,7 +49,7 @@ def create_parser():
     parser = argparse.ArgumentParser(
         prog="Get quiz content",
     )
-    parser.add_argument('--directory',
+    parser.add_argument('--source_directory',
                         default='quiz-questions',
                         help='Path to directory with files which contain quiz questions',
                         )
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     parser = create_parser()
     args = parser.parse_args()
 
-    directory = args.directory
+    directory = args.source_directory
     target_directory = args.target_directory
 
     target_filepath = os.path.join(target_directory, 'quiz_content.txt')

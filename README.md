@@ -33,11 +33,11 @@ Bots use the quiz questions and answers from the file specified by user. The dat
 The data must be stored in the `txt` file in the pickle format.
 You can get the example of the quiz data with the help of the following command:
 ```commandline
-python get_quiz_content.py <path_to_your_archive_with_quiz_data>
+python get_quiz_content.py --source_directory <path_to_your_archive_with_quiz_data>
 ```
 But first you should download and unpack the archive with the quiz data via the following [link](https://dvmn.org/media/modules_dist/quiz-questions.zip). 
 You should specify the path to the downloaded archive when running the `get_quiz_content.py` script. By default, the path is `./quiz-questions`. 
-Also, you can specify the path to the directory where you want to save the quiz data ready for bots' usage. By default, the path is `./quiz_content.txt`.
+Also, you can specify the path to the directory where you want to save the quiz data ready for bots' usage: `--target_directory`. By default, the path is `./quiz_content.txt`.
 
 ### Python Environment
 
@@ -97,8 +97,18 @@ You can also specify the path to the file with the quiz data by using the `--qui
 
 ## Examples
 
+You can try example bots:
+
+**TELEGRAM BOT**:
+
+[Telegram quiz bot](https://t.me/QuizestBot)
+
 User iteraction with the test telegram bot is look like:
 ![quiz_tg_bot.gif](quiz_tg_bot.gif)
+
+**VK BOT**:
+
+[VK quiz bot](https://vk.com/club225930917)
 
 User iteraction with the test vk bot is look like:
 ![quiz_vk_bot.gif](quiz_vk_bot.gif)
