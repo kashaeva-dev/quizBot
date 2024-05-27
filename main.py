@@ -5,7 +5,7 @@ from environs import Env
 
 from bots.tg_bot import start_tg_bot
 from bots.vk_bot import start_vk_bot
-from settings import redis_db
+from settings import get_redis_db
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ def create_parser():
                         )
     parser.add_argument('--file',
                         default='../quizBot/quiz_content.txt',
-                        help='Path to json file with intents',
+                        help='Path to file with quiz content',
                         )
 
     return parser
@@ -41,6 +41,13 @@ def main():
 
     parser = create_parser()
     args = parser.parse_args()
+
+    REDIS_HOST = env.str('REDIS_HOST')
+    REDIS_PORT = env.int('REDIS_PORT')
+    REDIS_PASSWORD = env.str('REDIS_PASSWORD')
+
+    redis_db = get_redis_db(REDIS_HOST, REDIS_PORT, REDIS_PASSWORD)
+
     try:
         tg_bot_token = env('TG_BOT_API')
         vk_api_token = env('VK_BOT_API')

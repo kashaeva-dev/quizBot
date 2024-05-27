@@ -28,13 +28,15 @@ def get_quiz_content(directory, target_filepath):
                         answer = answer_match.group(2).replace('\n', ' ')
                     question_answer = (question, answer)
                     quiz_content.append(question_answer)
+
+        # Save part of quiz content to file and clear list to avoid memory error on server
         save_quiz_content(target_filepath, quiz_content)
         quiz_content = []
     return quiz_content
 
 
 def save_quiz_content(filepath, data):
-    with open(filepath, 'wb') as quiz_content_file:
+    with open(filepath, 'ab') as quiz_content_file:
         pickle.dump(data, quiz_content_file)
 
 
@@ -53,8 +55,8 @@ def create_parser():
                         default='quiz-questions',
                         help='Path to directory with files which contain quiz questions',
                         )
-    parser.add_argument('--target_directory',
-                        default='.',
+    parser.add_argument('--target_filepath',
+                        default='./quiz_content.txt',
                         help='Path to save quiz content',
                         )
     return parser
@@ -65,7 +67,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     directory = args.source_directory
-    target_directory = args.target_directory
+    target_filepath = args.target_filepath
 
-    target_filepath = os.path.join(target_directory, 'quiz_content.txt')
     get_quiz_content(directory, target_filepath)

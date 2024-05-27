@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import random
@@ -9,11 +10,14 @@ from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext, ConversationHandler
 
 from get_quiz_content import load_quiz_content
-from settings import redis_db
+from settings import get_redis_db
 from tg_keyboards import get_main_keyboard
 
 
-def start(update: Update, context: CallbackContext, db):
+logger = logging.getLogger(__name__)
+
+
+def start(update: Update, context: CallbackContext, db, logger=logger):
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text="Здравствуйте!",
                              reply_markup=get_main_keyboard(),
@@ -22,7 +26,7 @@ def start(update: Update, context: CallbackContext, db):
     return 'REQUEST_QUESTION'
 
 
-def handle_solution_attempt(update: Update, context: CallbackContext, db):
+def handle_solution_attempt(update: Update, context: CallbackContext, db, logger=logger):
     question = json.loads(db.get(str(update.effective_chat.id)))
     answer = re.split(r'[.(]', question[1])[0].lower()
 
@@ -45,7 +49,7 @@ def handle_solution_attempt(update: Update, context: CallbackContext, db):
         return 'WAITING_ANSWER'
 
 
-def handle_new_question_request(update: Update, context: CallbackContext, db, filepath):
+def handle_new_question_request(update: Update, context: CallbackContext, db, filepath, logger=logger):
     quiz_content = load_quiz_content(filepath)
     question = random.choice(quiz_content)
     question_json = json.dumps(question)
@@ -58,7 +62,7 @@ def handle_new_question_request(update: Update, context: CallbackContext, db, fi
     return 'WAITING_ANSWER'
 
 
-def handle_surrender_request(update: Update, context: CallbackContext, db, filepath):
+def handle_surrender_request(update: Update, context: CallbackContext, db, filepath, logger=logger):
     question = json.loads(db.get(str(update.effective_chat.id)))
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text=f'Ответ на этот вопрос: {question[1]}',
@@ -103,11 +107,22 @@ def start_tg_bot(token, logger, db, filepath):
     updater.start_polling()
 
 
+def create_parser():
+    parser = argparse.ArgumentParser(
+        prog="Start telegram bot",
+    )
+    parser.add_argument('--file',
+                        default='../quizBot/quiz_content.txt',
+                        help='Path to file with quiz content',
+                        )
+
+    return parser
+
+
 if __name__ == '__main__':
     env = Env()
     env.read_env()
 
-    logger = logging.getLogger(__name__)
     token = env('TG_BOT_API')
 
     logging.basicConfig(
@@ -115,4 +130,13 @@ if __name__ == '__main__':
         level=logging.INFO,
     )
 
-    start_tg_bot(token, logger, db=redis_db, filepath='/Users/nataly/Projects/quizBot/quiz_content.txt')
+    parser = create_parser()
+    args = parser.parse_args()
+
+    REDIS_HOST = env.str('REDIS_HOST')
+    REDIS_PORT = env.int('REDIS_PORT')
+    REDIS_PASSWORD = env.str('REDIS_PASSWORD')
+
+    redis_db = get_redis_db(REDIS_HOST, REDIS_PORT, REDIS_PASSWORD)
+
+    start_tg_bot(token, logger, db=redis_db, filepath=args.file)
