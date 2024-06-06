@@ -5,14 +5,13 @@ import random
 import re
 from functools import partial
 
+import redis
 from environs import Env
 from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext, ConversationHandler
 
 from get_quiz_content import load_quiz_content
-from settings import get_redis_db
 from tg_keyboards import get_main_keyboard
-
 
 logger = logging.getLogger(__name__)
 
@@ -133,10 +132,14 @@ if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
 
-    REDIS_HOST = env.str('REDIS_HOST')
-    REDIS_PORT = env.int('REDIS_PORT')
-    REDIS_PASSWORD = env.str('REDIS_PASSWORD')
+    redis_host = env.str('REDIS_HOST')
+    redis_port = env.int('REDIS_PORT')
+    redis_password = env.str('REDIS_PASSWORD')
 
-    redis_db = get_redis_db(REDIS_HOST, REDIS_PORT, REDIS_PASSWORD)
+    redis_db = redis.Redis(host=redis_host,
+                           port=redis_port,
+                           db=0,
+                           password=redis_password,
+                           )
 
     start_tg_bot(token, logger, db=redis_db, filepath=args.file)

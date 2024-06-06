@@ -1,11 +1,11 @@
 import argparse
 import logging
 
+import redis
 from environs import Env
 
 from bots.tg_bot import start_tg_bot
 from bots.vk_bot import start_vk_bot
-from settings import get_redis_db
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +42,15 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
 
-    REDIS_HOST = env.str('REDIS_HOST')
-    REDIS_PORT = env.int('REDIS_PORT')
-    REDIS_PASSWORD = env.str('REDIS_PASSWORD')
+    redis_host = env.str('REDIS_HOST')
+    redis_port = env.int('REDIS_PORT')
+    redis_password = env.str('REDIS_PASSWORD')
 
-    redis_db = get_redis_db(REDIS_HOST, REDIS_PORT, REDIS_PASSWORD)
+    redis_db = redis.Redis(host=redis_host,
+                           port=redis_port,
+                           db=0,
+                           password=redis_password,
+                           )
 
     try:
         tg_bot_token = env('TG_BOT_API')
